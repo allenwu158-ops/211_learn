@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#f7f3ea">
 <title>211 餐盤檢測器</title>
+<!-- 手機嵌入滿版修正版：頂端對齊，依 iframe 可用高度自動縮放 -->
 <style>
 :root{--app-height:100vh;--scale:1;--green:#7eb449;--green-dark:#315f22;--orange:#ef9a5c;--orange-dark:#bb561e;--gray:#dfe1e4;--ink:#2f3e31;--muted:#687269;--cream:#f8f5ee;--red:#e95d55}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:none;background:transparent;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;color:var(--ink)}
 body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 #viewport{position:absolute;left:0;top:0;width:100%;height:var(--app-height,100%);overflow:hidden;background:radial-gradient(circle at 50% 15%,#fffdf8 0,#f5efe4 68%,#ebe4d8 100%)}
-#stage{position:absolute;width:390px;height:780px;left:50%;top:50%;margin-left:-195px;margin-top:-390px;transform:scale(var(--scale));transform-origin:center center;overflow:hidden;border-radius:30px;background:rgba(255,253,248,.94);box-shadow:0 14px 45px rgba(67,52,28,.17),inset 0 1px 0 #fff;border:1px solid rgba(255,255,255,.95)}
+#stage{position:absolute;width:390px;height:780px;left:50%;top:0;margin-left:-195px;margin-top:0;transform:scale(var(--scale));transform-origin:top center;overflow:hidden;border-radius:30px;background:rgba(255,253,248,.94);box-shadow:0 14px 45px rgba(67,52,28,.17),inset 0 1px 0 #fff;border:1px solid rgba(255,255,255,.95)}
 .header{position:absolute;left:20px;right:20px;top:14px;height:58px}
 .title{font-size:30px;font-weight:900;letter-spacing:2px;color:#315f22;line-height:34px;text-shadow:0 2px 8px rgba(94,136,57,.10)}
 .leaf{font-size:21px;margin-left:5px;color:#84b94f}
@@ -112,8 +113,27 @@ window.onerror=function(msg){var h=document.getElementById('progress');if(h){h.t
 var tray=document.getElementById('tray');
 var stage=document.getElementById('stage');
 var zones={vegetable:document.getElementById('zoneVegetable'),protein:document.getElementById('zoneProtein'),starch:document.getElementById('zoneStarch')};
-function setAppHeight(){var el=document.documentElement;var w=el.clientWidth||window.innerWidth;var h=el.clientHeight||window.innerHeight;document.documentElement.style.setProperty('--app-height',h+'px');var s=Math.min(w/390,h/780,1);document.documentElement.style.setProperty('--scale',s.toFixed(4));}
-window.addEventListener('load',setAppHeight);window.addEventListener('resize',setAppHeight);try{if(window.visualViewport&&typeof window.visualViewport.addEventListener==='function'){window.visualViewport.addEventListener('resize',setAppHeight)}}catch(vvErr){}setAppHeight();
+function setAppHeight(){
+var el=document.documentElement;
+var w=el.clientWidth||window.innerWidth||390;
+var h=el.clientHeight||window.innerHeight||780;
+try{
+if(window.visualViewport){
+if(window.visualViewport.width){w=Math.min(w,window.visualViewport.width)}
+if(window.visualViewport.height){h=Math.min(h,window.visualViewport.height)}
+}
+}catch(vvMeasureErr){}
+w=Math.max(1,w);h=Math.max(1,h);
+document.documentElement.style.setProperty('--app-height',h+'px');
+var s=Math.min(w/390,h/780,1);
+document.documentElement.style.setProperty('--scale',s.toFixed(4));
+}
+window.addEventListener('load',setAppHeight);
+window.addEventListener('resize',setAppHeight);
+window.addEventListener('orientationchange',function(){setTimeout(setAppHeight,120);setTimeout(setAppHeight,420)});
+try{if(window.visualViewport&&typeof window.visualViewport.addEventListener==='function'){window.visualViewport.addEventListener('resize',setAppHeight)}}catch(vvErr){}
+try{if(window.ResizeObserver){new ResizeObserver(setAppHeight).observe(document.documentElement)}}catch(roErr){}
+setAppHeight();
 function preventScroll(e){if(isDragging){e.preventDefault();}}
 document.addEventListener('touchmove',preventScroll,{passive:false});
 document.addEventListener('touchend',function(e){if(isDragging||Date.now()-lastDragEnd<400){e.preventDefault()}},{passive:false});
